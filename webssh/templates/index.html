@@ -26,13 +26,30 @@
       --warning-color: #f1c40f;
       --light-bg: #ecf0f1;
       --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      /* 夜间模式变量 */
+      --dark-bg: #181c20;
+      --dark-primary: #e0e6ed;
+      --dark-secondary: #a5bfe8;
+      --dark-card: #23272e;
+    }
+
+    body.dark-mode {
+      --primary-color: #e0e6ed;
+      --secondary-color: #a5bfe8;
+      --accent-color: #418dd8;
+      --danger-color: #e74c3c;
+      --success-color: #2ecc71;
+      --warning-color: #f1c40f;
+      --light-bg: #23272e;
+      --card-shadow: 0 10px 20px rgba(0,0,0,0.5);
+      background: linear-gradient(135deg, #23272e 0%, #181c20 100%);
+      color: var(--primary-color);
     }
 
     .main-container {
-      max-width: 1000px;
+      max-width: 850px;
       width: 100%;
       padding: 2rem;
-      /* 移动内边距到容器 */
     }
 
     .form-container {
@@ -44,14 +61,18 @@
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       height: auto;
-      /* 改为自动高度 */
+    }
+
+    body.dark-mode .form-container {
+      background: var(--dark-card);
     }
 
     .page-title {
-      color: var(--primary-color);
-      font-weight: 600;
+      margin-top: -20px;
+      color: #418dd8;
+      font-weight: 800;
       font-size: 2rem;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
       text-align: center;
       position: relative;
     }
@@ -59,7 +80,7 @@
     .page-title:after {
       content: '';
       display: block;
-      width: 60px;
+      width: 250px;
       height: 4px;
       background: var(--accent-color);
       margin: 1rem auto;
@@ -68,13 +89,11 @@
 
     .form-control {
       border: 2px solid #eee;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 1rem 1.2rem;
-      /* 增加内边距 */
-      height: calc(3rem + 2px);
-      /* 设置固定高度 */
+      font-weight: 500; 
+      height: calc(2.5rem + 2px);
       line-height: 1.5;
-      /* 设置行高 */
       transition: all 0.3s ease;
       background: #f8f9fa;
     }
@@ -86,14 +105,14 @@
     }
 
     label {
-      font-weight: 500;
+      font-weight: 600;
       color: var(--secondary-color);
       margin-bottom: 0.5rem;
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
 
     .form-section {
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .btn {
@@ -149,8 +168,7 @@
     }
 
     #sshlink {
-      height: 70px;
-      /* 固定高度 */
+      height: 50px; /* ssh link 高度 */
       flex: 1;
       overflow-x: auto;
       white-space: nowrap;
@@ -193,8 +211,8 @@
     }
 
     .github-corner svg {
-      fill: var(--accent-color);
-      color: var(--light-bg);
+      fill: #a5bfe8;
+      color: #131414;
       position: absolute;
       top: 0;
       right: 0;
@@ -211,38 +229,29 @@
       display: flex;
       align-items: center;
       gap: 1rem;
-      margin-top: 2rem;
-      margin-bottom: 2rem;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
       /* 添加底部间距 */
     }
 
     .button-group {
+      margin: 0 auto;
       display: flex;
       gap: 1rem;
       flex-shrink: 0;
-      /* 防止按钮被压缩 */
     }
 
-    /* 文件选择按钮的基本样式 */
     .file-btn {
-      /* 移除右上角和右下角的圆角 */
       border-top-right-radius: 0;
       border-bottom-right-radius: 0;
-      /* 设置内边距,使按钮更大更易点击 */
-      padding: 0.8rem 1.2rem;
-      /* 使用预定义的主题色作为背景色 */
+      padding: 0.6rem 1.2rem;
       background: var(--secondary-color);
-      /* 移除边框 */
       border: none;
-      /* 添加过渡效果,使样式变化更平滑 */
       transition: all 0.3s ease;
-      /* 设置相对定位,为光效动画做准备 */
       position: relative;
-      /* 隐藏超出按钮范围的内容 */
       overflow: hidden;
     }
 
-    /* 鼠标悬停时的按钮样式 */
     .file-btn:hover {
       /* 添加渐变背景,使按钮更有层次感 */
       background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
@@ -340,7 +349,7 @@
     }
 
     body {
-      font-family: '{{ font.family }}',
+      /* font-family: '{{ font.family }}',
       -apple-system,
       BlinkMacSystemFont,
       'Segoe UI',
@@ -351,7 +360,9 @@
       Cantarell,
       'Open Sans',
       'Helvetica Neue',
-      sans-serif;
+      sans-serif; */
+      overflow-x: hidden;
+      max-width: 100%;
       background: linear-gradient(135deg, #f6f8fa 0%, #e9ecef 100%);
       min-height: 100vh;
       padding: 0;
@@ -436,6 +447,31 @@
     // 确保DOM加载完成后绑定事件
     document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('sshlinkBtn').addEventListener('click', updateSSHlink);
+
+      // 日夜切换
+      const themeToggle = document.getElementById('theme-toggle');
+      const themeIcon = document.getElementById('theme-icon');
+      const body = document.body;
+
+      // 读取本地存储
+      if (localStorage.getItem('theme') === 'dark') {
+        body.classList.add('dark-mode');
+        themeIcon.classList.remove('fa-moon');
+        themeIcon.classList.add('fa-sun');
+      }
+
+      themeToggle.onclick = function () {
+        body.classList.toggle('dark-mode');
+        if (body.classList.contains('dark-mode')) {
+          themeIcon.classList.remove('fa-moon');
+          themeIcon.classList.add('fa-sun');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          themeIcon.classList.remove('fa-sun');
+          themeIcon.classList.add('fa-moon');
+          localStorage.setItem('theme', 'light');
+        }
+      };
     });
 
     // 注册 Service Worker
@@ -451,7 +487,7 @@
       });
     }
   </script>
-  <a href="https://github.com/cmliu/webssh" target="_blank" class="github-corner" aria-label="View source on Github">
+  <a href="https://github.com/eooce/webssh" target="_blank" class="github-corner" aria-label="View source on Github">
     <svg viewBox="0 0 250 250" aria-hidden="true">
       <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
       <path
@@ -462,10 +498,13 @@
         fill="currentColor" class="octo-body"></path>
     </svg>
   </a>
+  <div id="theme-toggle" style="position: fixed; top: 20px; right: 100px; z-index: 101; cursor: pointer;">
+    <i id="theme-icon" class="fas fa-moon"></i>
+  </div>
   <div id="waiter" style="display: none">正在建立连接...</div>
 
   <div class="main-container">
-    <div class="form-container" style="display: none">
+    <div class="form-container" style="display: none;padding-bottom: 0px">
       <h1 class="page-title">WebSSH Console</h1>
 
       <form id="connect" action="" method="post" enctype="multipart/form-data" {% if debug %} novalidate{% end %}>
@@ -515,20 +554,20 @@
             <div class="col-md-6 mb-3">
               <label for="passphrase">密钥口令 (Passphrase)</label>
               <input class="form-control" type="password" id="passphrase" name="passphrase" value=""
-                placeholder="如果需要请输入密钥口令">
+                placeholder="如果密钥有设置密码,请在这里输入">
             </div>
           </div>
         </div>
 
         <div class="form-section">
           <div class="row">
-            <div class="col-md-6 mb-3">
+            <!-- <div class="col-md-6 mb-3">
               <label for="totp">动态验证码 (TOTP)</label>
               <input class="form-control" type="password" id="totp" name="totp" value="" placeholder="如果启用请输入动态验证码">
-            </div>
+            </div> -->
             <div class="col-md-6 mb-3">
               <label for="initcmd">初始命令 (Init Command)</label>
-              <input class="form-control" type="text" id="initcmd" name="initcmd" value="" placeholder="登录后要执行的命令">
+              <input class="form-control" type="text" id="initcmd" name="initcmd" value="" placeholder="登录后要执行的命令" style="width: 705px;">
             </div>
           </div>
         </div>
@@ -554,12 +593,11 @@
           <div class="link-text"></div>
           <i class="fas fa-copy copy-btn" onclick="copySSHLink()"></i>
         </div>
+        <div class="terminal-container">
+          <div id="status" style="margin-top:15px; color: var(--danger-color);"></div>
+          <div id="terminal"></div>
+        </div>
       </form>
-    </div>
-
-    <div class="terminal-container">
-      <div id="status" style="color: var(--danger-color);"></div>
-      <div id="terminal"></div>
     </div>
   </div>
 
