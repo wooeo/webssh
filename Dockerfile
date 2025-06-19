@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3.10-alpine
 
 LABEL maintainer='<author>'
 LABEL version='0.0.0-dev.0-build.0'
@@ -13,7 +13,7 @@ RUN \
   adduser -Ss /bin/false -g webssh webssh && \
   chown -R webssh:webssh /code
 
-EXPOSE 8000/tcp
+EXPOSE 8888/tcp
 
 USER webssh
 
