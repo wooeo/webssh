@@ -871,9 +871,12 @@ jQuery(function($){
         return;
       }
       if (!password) {
-        $('#password').focus();
-        alert('请输入密码');
-        return;
+        var privatekey = $('#privatekey').val();
+        if (!privatekey) {
+          $('#password').focus();
+          alert('请输入密码或上传密钥');
+          return;
+        }
       }
 
       var passwdstrAfterBase64 = window.btoa(password);
