@@ -58,7 +58,21 @@ function updateSSHlink() {
     var sshlinkstr;
     sshlinkstr = thisPageProtocol+"//"+thisPageUrl+"/?hostname="+hostnamestr+"&port="+portstr+"&username="+usrnamestr+"&password="+passwdstrAfterBase64+"&command="+initcmdstrAfterURI;
 
-    document.getElementById("sshlink").innerHTML = sshlinkstr;
+    // 只更新 .link-text 的内容，不要覆盖 #sshlink 的 innerHTML
+    var sshlinkElement = document.querySelector("#sshlink .link-text");
+    if (sshlinkElement) {
+      sshlinkElement.textContent = '';
+      let i = 0;
+      const typeWriter = () => {
+        if (i < sshlinkstr.length) {
+          sshlinkElement.textContent += sshlinkstr.charAt(i);
+          i++;
+          setTimeout(typeWriter, 6);
+        }
+      };
+      setTimeout(typeWriter, 300);
+    }
+    // 保证复制按钮始终存在，无需操作 #sshlink.innerHTML
 }
 
 jQuery(function($){
@@ -212,7 +226,9 @@ jQuery(function($){
 
   function resize_terminal(term) {
     var geometry = current_geometry(term);
-    term.on_resize(geometry.cols, geometry.rows);
+    if (geometry && Number.isInteger(geometry.cols) && Number.isInteger(geometry.rows) && geometry.cols > 0 && geometry.rows > 0) {
+      term.on_resize(geometry.cols, geometry.rows);
+    }
   }
 
 
@@ -377,10 +393,13 @@ jQuery(function($){
       return;
     }
 
+    form_container.hide();
+    $('.terminal-container').show();
+
     var msg = resp.responseJSON;
     if (!msg.id) {
       log_status(msg.status, true);
-      state = DISCONNECTED;
+      state = DISCONNECTED
       return;
     }
 
@@ -393,6 +412,7 @@ jQuery(function($){
         terminal = document.getElementById('terminal'),
         termOptions = {
           cursorBlink: true,
+          cursorWidth: 1,
           theme: {
             background: url_opts_data.bgcolor || 'black',
             foreground: url_opts_data.fontcolor || 'white',
@@ -408,6 +428,7 @@ jQuery(function($){
     }
 
     var term = new window.Terminal(termOptions);
+    term.first_write_done = false;
 
     term.fitAddon = new window.FitAddon.FitAddon();
     term.loadAddon(term.fitAddon);
@@ -421,12 +442,9 @@ jQuery(function($){
     }
 
     function term_write(text) {
+      $('#waiter').hide();
       if (term) {
         term.write(text);
-        if (!term.resized) {
-          resize_terminal(term);
-          term.resized = true;
-        }
       }
     }
 
@@ -553,17 +571,26 @@ jQuery(function($){
     });
 
     sock.onopen = function() {
-      term.open(terminal);
-      toggle_fullscreen(term);
-      update_font_family(term);
-      term.focus();
+      $('body').addClass('terminal-active');
+      // Use a timeout to ensure the DOM is ready for xterm.js
+      setTimeout(function() {
+        try {
+          term.open(terminal);
+          term.fitAddon.fit();
+          term.focus();
+
+          if (url_opts_data.command) {
+              setTimeout(function () {
+                sock.send(JSON.stringify({'data': url_opts_data.command+'\r'}));
+              }, 100);
+          }
+        } catch (e) {
+            console.error('Error during terminal setup:', e);
+        }
+      }, 100);
+
       state = CONNECTED;
       title_element.text = url_opts_data.title || default_title;
-      if (url_opts_data.command) {
-        setTimeout(function () {
-          sock.send(JSON.stringify({'data': url_opts_data.command+'\r'}));
-        }, 500);
-      }
     };
 
     sock.onmessage = function(msg) {
@@ -575,6 +602,8 @@ jQuery(function($){
     };
 
     sock.onclose = function(e) {
+      $('body').removeClass('terminal-active');
+      $('.terminal-container').hide();
       term.dispose();
       term = undefined;
       sock = undefined;
@@ -816,9 +845,51 @@ jQuery(function($){
 
   wssh.connect = connect;
 
-  $(form_id).submit(function(event){
-    event.preventDefault();
-    connect();
+  $(document).ready(function() {
+    $('#connectBtn').on('click', function() {
+      var hostname = $('#hostname').val();
+      var port = $('#port').val();
+      var username = $('#username').val();
+      var password = $('#password').val();
+      if (typeof password === 'undefined' || password === null) {
+        password = document.getElementById('password') ? document.getElementById('password').value : '';
+      }
+
+      if (!hostname) {
+        $('#hostname').focus();
+        alert('请输入hostname');
+        return;
+      }
+      if (!port) {
+        $('#port').focus();
+        alert('请输入端口');
+        return;
+      }
+      if (!username) {
+        $('#username').focus();
+        alert('请输入用户名');
+        return;
+      }
+      if (!password) {
+        $('#password').focus();
+        alert('请输入密码');
+        return;
+      }
+
+      var passwdstrAfterBase64 = window.btoa(password);
+      var initcmd = $('#initcmd').val();
+      var initcmdAfterURI = encodeURIComponent(initcmd);
+
+      var url = window.location.origin + window.location.pathname +
+        '?hostname=' + encodeURIComponent(hostname) +
+        '&port=' + encodeURIComponent(port) +
+        '&username=' + encodeURIComponent(username) +
+        '&password=' + encodeURIComponent(passwdstrAfterBase64) +
+        '&command=' + initcmdAfterURI +
+        '&term=xterm-256color';
+
+      window.open(url, '_blank');
+    });
   });
 
 
@@ -870,16 +941,22 @@ jQuery(function($){
     term_type.val(url_opts_data.term);
   }
 
-  if (url_form_data.password === null) {
-    log_status('Password via url must be encoded in base64.');
+  if (get_object_length(url_form_data)) {
+    waiter.show();
+    form_container.hide();
+    $('.terminal-container').show();
+    connect(
+      url_form_data.hostname,
+      url_form_data.port,
+      url_form_data.username,
+      url_form_data.password,
+      url_form_data.privatekey,
+      url_form_data.passphrase,
+      url_form_data.totp
+    );
   } else {
-    if (get_object_length(url_form_data)) {
-      waiter.show();
-      connect(url_form_data);
-    } else {
-      restore_items(fields);
-      form_container.show();
-    }
+    restore_items(fields);
+    form_container.show();
   }
 
 });
