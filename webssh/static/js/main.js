@@ -871,7 +871,8 @@ jQuery(function($){
         return;
       }
       if (!password) {
-        var privatekey = $('#privatekey').val();
+        var privatekeyInput = document.getElementById('privatekey');
+        var privatekey = privatekeyInput && privatekeyInput.files && privatekeyInput.files.length > 0 ? privatekeyInput.files[0] : null;
         if (!privatekey) {
           $('#password').focus();
           alert('请输入密码或上传密钥');
@@ -879,19 +880,41 @@ jQuery(function($){
         }
       }
 
-      var passwdstrAfterBase64 = window.btoa(password);
-      var initcmd = $('#initcmd').val();
-      var initcmdAfterURI = encodeURIComponent(initcmd);
+      // 密码登录
+      if (password) {
+        var passwdstrAfterBase64 = window.btoa(password);
+        var initcmd = $('#initcmd').val();
+        var initcmdAfterURI = encodeURIComponent(initcmd);
 
-      var url = window.location.origin + window.location.pathname +
-        '?hostname=' + encodeURIComponent(hostname) +
-        '&port=' + encodeURIComponent(port) +
-        '&username=' + encodeURIComponent(username) +
-        '&password=' + encodeURIComponent(passwdstrAfterBase64) +
-        '&command=' + initcmdAfterURI +
-        '&term=xterm-256color';
+        var url = window.location.origin + window.location.pathname +
+          '?hostname=' + encodeURIComponent(hostname) +
+          '&port=' + encodeURIComponent(port) +
+          '&username=' + encodeURIComponent(username) +
+          '&password=' + encodeURIComponent(passwdstrAfterBase64) +
+          '&command=' + initcmdAfterURI +
+          '&term=xterm-256color';
 
-      window.open(url, '_blank');
+        window.open(url, '_blank');
+      } else {
+        // 密钥登录
+        var form = document.querySelector('#connect');
+        var formData = new FormData(form);
+        var initcmd = $('#initcmd').val();
+        if (initcmd) {
+          formData.set('command', initcmd);
+        }
+        $('#waiter').show();
+        $('.form-container').hide();
+        $.ajax({
+          url: form.action,
+          type: 'post',
+          data: formData,
+          complete: ajax_complete_callback,
+          cache: false,
+          contentType: false,
+          processData: false
+        });
+      }
     });
   });
 
