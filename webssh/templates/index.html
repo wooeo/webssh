@@ -179,13 +179,13 @@
     }
 
     #sshlink {
-      height: 50px; /* ssh link 高度 */
+      height: 45px; 
       flex: 1;
       overflow-x: auto;
       white-space: nowrap;
       margin: 0;
       padding: 0.5rem 1rem;
-      background: var(--light-bg);
+      background: #f8f9fa;
       border-radius: 8px;
       font-size: 0.9rem;
       transition: opacity 0.3s ease;
@@ -195,6 +195,7 @@
     }
 
     .link-text {
+      color: #0c3b8e;
       padding: 0.5rem;
       flex: 1;
       overflow-x: scroll;
@@ -242,7 +243,6 @@
       gap: 1rem;
       margin-top: 1rem;
       margin-bottom: 1rem;
-      /* 添加底部间距 */
     }
 
     .button-group {
@@ -299,7 +299,6 @@
     }
 
     .copy-btn {
-      margin-left: 5px;
       color: #0ebd63;
       margin-left: auto;
       cursor: pointer;
@@ -317,7 +316,7 @@
       }
 
       #initcmd {
-      width: 19.5rem;
+      width: 19.3rem;
       }  
 
       .form-container {
@@ -616,7 +615,7 @@
 
         <div id="sshlink" style="margin-bottom: 1rem;">
           <div class="link-text"></div>
-          <i class="fas fa-copy copy-btn" onclick="copySSHLink()"></i>
+          <i class="fas copy-btn fa-copy" onclick="copySSHLink()" style="margin-left: 5px;margin-right: -10px;"></i>
         </div>
       </form>
     </div>
