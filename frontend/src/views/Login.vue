@@ -152,21 +152,21 @@ export default {
       sessionStorage.removeItem('sshInfo')
       
       if (!this.sshInfo.hostname) {
-        this.$message.error('主机不能为空！')
+        this.$message.error('请填写主机地址')
         this.$nextTick(() => {
           this.$refs.hostnameInput && this.$refs.hostnameInput.focus()
         })
         return
       }
       if (!this.sshInfo.username) {
-        this.$message.error('用户名不能为空！')
+        this.$message.error('请填写用户名')
         this.$nextTick(() => {
           this.$refs.usernameInput && this.$refs.usernameInput.focus()
         })
         return
       }
       if (!this.sshInfo.password && !this.sshInfo.privateKey) {
-        this.$message.error('请输入密码或上传密钥！')
+        this.$message.error('请输入密码或上传密钥')
         this.$nextTick(() => {
           this.$refs.passwordInput && this.$refs.passwordInput.focus()
         })
